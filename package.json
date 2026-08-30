@@ -1,0 +1,20 @@
+{
+  "name": "ui-detection-browser",
+  "version": "1.0.0",
+  "description": "Browser-based UI element detection using YOLOv8s and ONNX Runtime Web",
+  "scripts": {
+    "start": "cd public && python server.py",
+    "export": "python scripts/export_model.py onnx",
+    "serve": "npx serve public -p 8000"
+  },
+  "keywords": [
+    "yolov8",
+    "object-detection",
+    "ui-detection",
+    "onnx",
+    "browser",
+    "web-form",
+    "computer-vision"
+  ],
+  "license": "MIT"
+}
