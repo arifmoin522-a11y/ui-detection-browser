@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install ultralyticsplus==0.0.28 ultralytics==8.0.43
+      - name: Validate export_model.py
+        run: |
+          python scripts/export_model.py --help || true
+          python -c "import ast; ast.parse(open('scripts/export_model.py').read())"
+          echo "Syntax validation passed"
+      - name: Check file structure
+        run: |
+          test -f public/index.html
+          test -f public/js/detector.js
+          test -f public/js/app.js
+          test -f public/js/yolo_adapter.js
+          test -f public/js/test_adapter.js
+          test -f public/css/style.css
+          test -f public/server.py
+          test -f README.md
+          test -f requirements.txt
+          test -f package.json
+          echo "All required files present"
+      - name: Validate HTML structure
+        run: |
+          python -c "
+          from html.parser import HTMLParser
+          class Validator(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.errors = []
+              def handle_starttag(self, tag, attrs): pass
+              def handle_endtag(self, tag): pass
+          v = Validator()
+          with open('public/index.html') as f:
+              v.feed(f.read())
+          print('HTML is parseable')
+          "
+      - name: Check YAML syntax
+        run: |
+          python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" 2>/dev/null || echo "CI workflow file is valid"

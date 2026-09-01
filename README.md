@@ -316,6 +316,100 @@ xychart-beta
 
 ---
 
+## API Reference
+
+### `UIDetector`
+
+The `UIDetector` class (in `public/js/detector.js`) wraps ONNX Runtime Web inference. It is **not to be modified**.
+
+| Method | Description |
+|--------|-------------|
+| `await loadModel()` | Downloads and loads the YOLOv8s ONNX model into the browser |
+| `await detect(image)` | Runs inference on an `HTMLImageElement`, returns raw detections |
+| `drawDetections(canvas, image, detections)` | Draws bounding boxes on the canvas |
+| `session` | The ONNX Runtime Web inference session (ready after `loadModel`) |
+| `confThreshold` | Confidence threshold (default `0.25`) |
+| `iouThreshold` | IoU threshold for NMS (default `0.45`) |
+
+**Raw detection object** (from `detector.detect()`):
+
+```js
+{
+  class: "button",      // detected class name
+  classIdx: 0,          // class index
+  score: 0.95,          // confidence score
+  bbox: { x1: 10, y1: 20, x2: 100, y2: 50 }  // bounding box in original image coords
+}
+```
+
+### `YoloVisionAdapter`
+
+The `YoloVisionAdapter` (in `public/js/yolo_adapter.js`) converts raw detections into the team contract format.
+
+**Usage:**
+
+```js
+const visionOutput = YoloVisionAdapter.adaptDetections(rawDetections);
+```
+
+**Adapter output** (team contract format):
+
+```js
+{
+  id: "ui-1",              // unique sequential ID (ui-1, ui-2, ...)
+  type: "button",          // element type (from class field)
+  label: "button",         // display label
+  bbox: { x1: 10, y1: 20, x2: 100, y2: 50 },  // immutable copy of bbox
+  confidence: 0.95         // confidence score
+}
+```
+
+| Method | Description |
+|--------|-------------|
+| `adaptDetections(detections)` | Converts raw detections to team contract format; returns sorted array by confidence descending |
+| `resetCounter()` | Resets the sequential ID counter (call before each new detection round) |
+
+**Validation rules:**
+- Input must be an array; non-array inputs return `[]`
+- Each detection must have a valid `bbox` (`x1 <= x2`, `y1 <= y2`) and `score` (`0 <= score <= 1`)
+- Invalid detections are filtered out with a console warning
+- Output is always sorted by `confidence` descending
+- Bounding boxes are shallow-copied (immutable)
+- Original `class`, `score`, `classIdx` fields are excluded from output
+
+### `YoloVisionAdapterTestSuite`
+
+The test suite (in `public/js/test_adapter.js`) validates the adapter.
+
+```js
+YoloVisionAdapterTestSuite.run()
+```
+
+Runs 9 test cases covering basic adaptation, empty input, invalid types, invalid bbox, invalid score, unique IDs, sorting, field mapping, and multiple calls.
+
+### Inference Pipeline
+
+```
+User uploads screenshot
+  → Image resized to 640×640, normalized (0–1), CHW layout
+  → ONNX Runtime Web tensor created
+  → YOLOv8s model inference → raw predictions [1, 43, 8400]
+  → Confidence filter (> 0.25) → NMS (IoU < 0.45)
+  → Coordinate transform to original size
+  → YoloVisionAdapter.adaptDetections() → team contract format
+  → Results rendered on canvas and in the UI list
+```
+
+### Running the Demo
+
+```bash
+cd public
+python server.py
+# Open http://localhost:8000
+```
+
+---
+
 ## Credits
 
 - Model: [foduucom/web-form-ui-field-detection](https://huggingface.co/foduucom/web-form-ui-field-detection)
