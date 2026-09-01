@@ -69,7 +69,8 @@ detectBtn.addEventListener("click", async () => {
         const detections = await detector.detect(currentImage);
         detector.drawDetections(canvas, currentImage, detections);
 
-        renderResults(detections);
+        const visionOutput = YoloVisionAdapter.adaptDetections(detections);
+        renderResults(visionOutput);
 
         setStatus(`Found ${detections.length} UI element(s)`, "success");
     } catch (err) {
@@ -96,8 +97,8 @@ function renderResults(detections) {
 
     const grouped = {};
     detections.forEach(det => {
-        if (!grouped[det.class]) grouped[det.class] = [];
-        grouped[det.class].push(det);
+        if (!grouped[det.type]) grouped[det.type] = [];
+        grouped[det.type].push(det);
     });
 
     Object.entries(grouped).forEach(([cls, dets]) => {
@@ -105,11 +106,11 @@ function renderResults(detections) {
             const item = document.createElement("div");
             item.className = "result-item";
 
-            const color = CLASS_COLORS[det.class] || "#fff";
+            const color = CLASS_COLORS[det.type] || "#fff";
             item.innerHTML = `
                 <span class="color-dot" style="background:${color}"></span>
-                <span class="label">${det.class}</span>
-                <span class="confidence">${(det.score * 100).toFixed(1)}%</span>
+                <span class="label">${det.label}</span>
+                <span class="confidence">${(det.confidence * 100).toFixed(1)}%</span>
             `;
             resultsList.appendChild(item);
         });
