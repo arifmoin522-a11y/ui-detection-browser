@@ -8,35 +8,36 @@
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container" role="main">
         <header>
             <h1>UI Element Detection</h1>
             <p>YOLOv8s model running in-browser via ONNX Runtime Web</p>
         </header>
 
-        <div class="controls">
-            <label class="upload-btn">
+        <div class="controls" role="toolbar" aria-label="Detection controls">
+            <label class="upload-btn" role="button" tabindex="0" aria-label="Upload screenshot image">
                 <input type="file" id="imageInput" accept="image/*" hidden>
                 Upload Screenshot
             </label>
-            <button id="detectBtn" disabled>Detect UI Elements</button>
+            <button id="detectBtn" disabled aria-label="Detect UI elements in the uploaded image">Detect UI Elements</button>
+            <button id="resetBtn" style="display:none;" aria-label="Reset the detection view">Reset</button>
             <div class="threshold-control">
                 <label for="confThreshold">Confidence: <span id="confValue">0.25</span></label>
-                <input type="range" id="confThreshold" min="0.1" max="0.9" step="0.05" value="0.25">
+                <input type="range" id="confThreshold" min="0.1" max="0.9" step="0.05" value="0.25" aria-label="Confidence threshold">
             </div>
         </div>
 
-        <div id="status" class="status">Select an image to begin</div>
+        <div id="status" class="status" role="status" aria-live="polite">Select an image to begin</div>
 
         <div class="canvas-container">
-            <canvas id="outputCanvas"></canvas>
-            <div id="loadingOverlay" class="loading-overlay hidden">
+            <canvas id="outputCanvas" role="img" aria-label="Detection result canvas showing bounding boxes"></canvas>
+            <div id="loadingOverlay" class="loading-overlay hidden" role="alert">
                 <div class="spinner"></div>
                 <span>Loading model...</span>
             </div>
         </div>
 
-        <div id="results" class="results hidden">
+        <div id="results" class="results hidden" role="region" aria-label="Detection results">
             <h2>Detected Elements</h2>
             <div id="resultsList" class="results-list"></div>
         </div>

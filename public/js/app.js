@@ -5,6 +5,7 @@
 
 const imageInput = document.getElementById("imageInput");
 const detectBtn = document.getElementById("detectBtn");
+const resetBtn = document.getElementById("resetBtn");
 const statusEl = document.getElementById("status");
 const canvas = document.getElementById("outputCanvas");
 const loadingOverlay = document.getElementById("loadingOverlay");
@@ -14,7 +15,26 @@ const confSlider = document.getElementById("confThreshold");
 const confValue = document.getElementById("confValue");
 
 let currentImage = null;
+let detectionHistory = [];
 const detector = new UIDetector();
+
+resetBtn.addEventListener("click", resetView);
+
+function resetView() {
+    YoloVisionAdapter.resetCounter();
+    detectionHistory = [];
+    currentImage = null;
+    canvas.width = 0;
+    canvas.height = 0;
+    const ctx = canvas.getContext("2d");
+    if (ctx) ctx.clearRect(0, 0, 0, 0);
+    resultsEl.classList.add("hidden");
+    resultsList.innerHTML = "";
+    detectBtn.disabled = true;
+    resetBtn.style.display = "none";
+    imageInput.value = "";
+    setStatus("View reset. Upload a new screenshot.", "");
+}
 
 function setStatus(msg, type = "") {
     statusEl.textContent = msg;
@@ -44,6 +64,7 @@ imageInput.addEventListener("change", (e) => {
     img.onload = () => {
         currentImage = img;
         detectBtn.disabled = false;
+        resetBtn.style.display = "none";
 
         canvas.width = img.width;
         canvas.height = img.height;
@@ -51,6 +72,7 @@ imageInput.addEventListener("change", (e) => {
         ctx.drawImage(img, 0, 0);
 
         resultsEl.classList.add("hidden");
+        resultsList.innerHTML = "";
         setStatus(`Image loaded (${img.width}x${img.height}). Click Detect.`, "success");
     };
     img.src = URL.createObjectURL(file);
@@ -70,9 +92,18 @@ detectBtn.addEventListener("click", async () => {
         detector.drawDetections(canvas, currentImage, detections);
 
         const visionOutput = YoloVisionAdapter.adaptDetections(detections);
-        renderResults(visionOutput);
 
-        setStatus(`Found ${detections.length} UI element(s)`, "success");
+        detectionHistory.push({
+            timestamp: Date.now(),
+            inputSize: { width: currentImage.width, height: currentImage.height },
+            count: visionOutput.length,
+            elements: visionOutput.map((d) => d.type)
+        });
+
+        renderResults(visionOutput);
+        resetBtn.style.display = "inline-block";
+
+        setStatus(`Found ${visionOutput.length} UI element(s)`, "success");
     } catch (err) {
         setStatus("Detection failed: " + err.message, "error");
         console.error(err);
@@ -89,6 +120,7 @@ confSlider.addEventListener("input", () => {
 function renderResults(detections) {
     if (detections.length === 0) {
         resultsEl.classList.add("hidden");
+        resetBtn.style.display = "none";
         return;
     }
 
@@ -105,6 +137,7 @@ function renderResults(detections) {
         dets.forEach(det => {
             const item = document.createElement("div");
             item.className = "result-item";
+            item.setAttribute("role", "listitem");
 
             const color = CLASS_COLORS[det.type] || "#fff";
             item.innerHTML = `
