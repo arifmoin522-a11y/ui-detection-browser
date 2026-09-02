@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preload" href="js/detector.js" as="script">
     <link rel="preload" href="js/yolo_adapter.js" as="script">
-    <link rel="preload" href="model/ui-detection.onnx" as="fetch" crossorigin>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js" defer></script>
 </head>
 <body>
@@ -18,26 +17,74 @@
             <p>YOLOv8s model running in-browser via ONNX Runtime Web</p>
         </header>
 
-        <div class="controls" role="toolbar" aria-label="Detection controls">
-            <label class="upload-btn" role="button" tabindex="0" aria-label="Upload screenshot image">
-                <input type="file" id="imageInput" accept="image/*" hidden>
+        <div class="mode-switcher" role="tablist" aria-label="Detection mode">
+            <button id="modeUpload" class="mode-btn active" role="tab" aria-selected="true" aria-controls="uploadPanel">
                 Upload Screenshot
-            </label>
-            <button id="detectBtn" disabled aria-label="Detect UI elements in the uploaded image">Detect UI Elements</button>
-            <button id="resetBtn" style="display:none;" aria-label="Reset the detection view">Reset</button>
-            <div class="threshold-control">
-                <label for="confThreshold">Confidence: <span id="confValue">0.25</span></label>
-                <input type="range" id="confThreshold" min="0.1" max="0.9" step="0.05" value="0.25" aria-label="Confidence threshold">
+            </button>
+            <button id="modeLive" class="mode-btn" role="tab" aria-selected="false" aria-controls="livePanel">
+                Live Detection
+            </button>
+        </div>
+
+        <!-- Upload Mode Panel -->
+        <div id="uploadPanel" class="mode-panel" role="tabpanel">
+            <div class="controls" role="toolbar" aria-label="Upload detection controls">
+                <label class="upload-btn" role="button" tabindex="0" aria-label="Upload screenshot image">
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    Upload Screenshot
+                </label>
+                <button id="detectBtn" disabled aria-label="Detect UI elements in the uploaded image">Detect UI Elements</button>
+                <div class="threshold-control">
+                    <label for="confThreshold">Confidence: <span id="confValue">0.25</span></label>
+                    <input type="range" id="confThreshold" min="0.1" max="0.9" step="0.05" value="0.25" aria-label="Confidence threshold">
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Mode Panel -->
+        <div id="livePanel" class="mode-panel hidden" role="tabpanel">
+            <div class="controls" role="toolbar" aria-label="Live detection controls">
+                <button id="startLiveBtn" class="live-btn start" aria-label="Start live screen capture detection">
+                    Start Live Detection
+                </button>
+                <button id="stopLiveBtn" class="live-btn stop hidden" aria-label="Stop live detection">
+                    Stop Live Detection
+                </button>
+                <div class="threshold-control">
+                    <label for="liveConfThreshold">Confidence: <span id="liveConfValue">0.25</span></label>
+                    <input type="range" id="liveConfThreshold" min="0.1" max="0.9" step="0.05" value="0.25" aria-label="Live confidence threshold">
+                </div>
+                <div class="threshold-control">
+                    <label for="fpsLimit">FPS: <span id="fpsLimitValue">10</span></label>
+                    <input type="range" id="fpsLimit" min="1" max="30" step="1" value="10" aria-label="Frame rate limit">
+                </div>
             </div>
         </div>
 
         <div id="status" class="status" role="status" aria-live="polite">Select an image to begin</div>
 
-        <div class="canvas-container">
+        <!-- Upload canvas -->
+        <div id="uploadCanvasWrap" class="canvas-container">
             <canvas id="outputCanvas" role="img" aria-label="Detection result canvas showing bounding boxes"></canvas>
             <div id="loadingOverlay" class="loading-overlay hidden" role="alert">
                 <div class="spinner"></div>
                 <span>Loading model...</span>
+            </div>
+        </div>
+
+        <!-- Live video + overlay -->
+        <div id="liveContainer" class="live-container hidden">
+            <div class="live-video-wrap">
+                <video id="liveVideo" autoplay playsinline muted></video>
+                <canvas id="liveOverlay"></canvas>
+                <div class="live-indicator" id="liveIndicator">
+                    <span class="live-dot"></span> LIVE
+                </div>
+                <div class="fps-counter" id="fpsCounter">0 FPS</div>
+            </div>
+            <div class="live-results" id="liveResults">
+                <h3>Detected Elements <span id="liveCount">(0)</span></h3>
+                <div id="liveResultsList" class="live-results-list"></div>
             </div>
         </div>
 
