@@ -9,3 +9,4 @@ model/*.tfjs/
 dist/
 build/
 .env
+best.pt

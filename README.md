@@ -114,11 +114,13 @@ flowchart LR
 ### Detected Classes
 
 ```
-button, checkbox, combobox, date, dropdown, email, file, image, link,
-listbox, number, password, radio, range, reset, search, submit, tel,
-text, textarea, time, url, username, address, city, country,
-credit-card, cvv, expiration, first-name, last-name, phone, pin,
-postal-code, state, message, comment, search-box
+DOB, address, age input, age, button, checkbox, city, company,
+country dropdown, country input, date, day dropdown, doc-upload,
+dropdown, email-input, emp id, first-name, gender dropdown, gender,
+input, job role, last-name, message, month dropdown, name, otp,
+password, phone-num, redio button, region, reminder checkbox,
+state dropdown, state input-, state, terms checkbox, username,
+web url-, year dropdown, zip code
 ```
 
 ---
@@ -231,51 +233,49 @@ sequenceDiagram
 mindmap
   root((UI Elements))
     Form Inputs
-      text
-      email
+      input
+      email-input
       password
-      number
-      tel
-      url
-      search
-      date
-      time
-    Buttons
-      button
-      submit
-      reset
-    Selection
-      checkbox
-      radio
-      dropdown
-      combobox
-      listbox
-      range
-    Media
-      image
-      file
-    Navigation
-      link
-      search-box
-    Labels
-      message
-      comment
-    Addresses
-      address
-      city
-      state
-      country
-      postal-code
-    Identity
+      phone-num
+      name
       first-name
       last-name
       username
-      phone
-      pin
-    Payment
-      credit-card
-      cvv
-      expiration
+      address
+      city
+      state
+      state input-
+      zip code
+      country input
+      country dropdown
+      state dropdown
+      date
+      dob
+      age
+      age input
+      emp id
+      job role
+      gender
+      gender dropdown
+      company
+      web url-
+      region
+    Buttons
+      button
+    Selection
+      checkbox
+      terms checkbox
+      reminder checkbox
+      redio button
+      dropdown
+      day dropdown
+      month dropdown
+      year dropdown
+    Media
+      doc-upload
+    Labels
+      message
+      otp
 ```
 
 ---

@@ -177,6 +177,7 @@ canvas {
     border-radius: 12px;
     border: 2px solid var(--border);
     transition: var(--transition);
+    contain: layout style;
 }
 
 .loading-overlay {
@@ -205,22 +206,22 @@ canvas {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to { transform: rotate(360deg) translateZ(0); }
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(-20px) translateZ(0); }
+    to { opacity: 1; transform: translateY(0) translateZ(0); }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(20px) translateZ(0); }
+    to { opacity: 1; transform: translateY(0) translateZ(0); }
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
+    from { opacity: 0; transform: translateX(-10px) translateZ(0); }
+    to { opacity: 1; transform: translateX(0) translateZ(0); }
 }
 
 .hidden {
@@ -233,6 +234,7 @@ canvas {
     padding: 20px;
     border: 1px solid var(--border);
     animation: fadeInUp 0.5s ease 0.3s both;
+    contain: layout style;
 }
 
 .results h2 {
@@ -255,7 +257,8 @@ canvas {
     background: var(--bg-tertiary);
     border-radius: var(--radius);
     font-size: 0.85rem;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.3s ease both;
+    will-change: transform, opacity;
     transition: var(--transition);
 }
 

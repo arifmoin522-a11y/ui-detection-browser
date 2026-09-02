@@ -4,14 +4,14 @@
  */
 
 const CLASSES = [
-    "button", "checkbox", "combobox", "date", "dropdown",
-    "email", "file", "image", "link", "listbox",
-    "number", "password", "radio", "range", "reset",
-    "search", "submit", "tel", "text", "textarea",
-    "time", "url", "username", "address", "city",
-    "country", "credit-card", "cvv", "expiration",
-    "first-name", "last-name", "phone", "pin", "postal-code",
-    "state", "message", "comment", "search-box"
+    "DOB", "address", "age input", "age", "button", "checkbox",
+    "city", "company", "country dropdown", "country input", "date",
+    "day dropdown", "doc-upload", "dropdown", "email-input", "emp id",
+    "first-name", "gender dropdown", "gender", "input", "job role",
+    "last-name", "message", "month dropdown", "name", "otp",
+    "password", "phone-num", "redio button", "region",
+    "reminder checkbox", "state dropdown", "state input-", "state",
+    "terms checkbox", "username", "web url-", "year dropdown", "zip code"
 ];
 
 const CLASS_COLORS = {};
@@ -53,13 +53,15 @@ class UIDetector {
         ctx.drawImage(imageElement, offsetX, offsetY, imageElement.width * scale, imageElement.height * scale);
 
         const imageData = ctx.getImageData(0, 0, width, height);
-        const data = imageData.data;
+        const pixels = new Uint32Array(imageData.data.buffer);
+        const channelSize = height * width;
+        const float32Data = new Float32Array(channels * channelSize);
 
-        const float32Data = new Float32Array(channels * height * width);
-        for (let i = 0; i < height * width; i++) {
-            float32Data[i] = data[i * 4] / 255.0;                    // R
-            float32Data[height * width + i] = data[i * 4 + 1] / 255.0;  // G
-            float32Data[2 * height * width + i] = data[i * 4 + 2] / 255.0; // B
+        for (let i = 0; i < channelSize; i++) {
+            const p = pixels[i];
+            float32Data[i] = (p & 0xff) / 255.0;                       // R
+            float32Data[channelSize + i] = ((p >> 8) & 0xff) / 255.0;   // G
+            float32Data[2 * channelSize + i] = ((p >> 16) & 0xff) / 255.0; // B
         }
 
         return {
@@ -137,19 +139,25 @@ class UIDetector {
 
     nms(detections) {
         detections.sort((a, b) => b.score - a.score);
-        const kept = [];
+        const n = detections.length;
+        const suppressed = new Uint8Array(n);
 
-        while (detections.length > 0) {
-            const best = detections.shift();
-            kept.push(best);
-
-            detections = detections.filter(det => {
-                if (det.class !== best.class) return true;
-                const iou = this.computeIoU(best.bbox, det.bbox);
-                return iou < this.iouThreshold;
-            });
+        for (let i = 0; i < n; i++) {
+            if (suppressed[i]) continue;
+            const best = detections[i];
+            for (let j = i + 1; j < n; j++) {
+                if (suppressed[j]) continue;
+                if (detections[j].class !== best.class) continue;
+                if (this.computeIoU(best.bbox, detections[j].bbox) >= this.iouThreshold) {
+                    suppressed[j] = 1;
+                }
+            }
         }
 
+        const kept = [];
+        for (let i = 0; i < n; i++) {
+            if (!suppressed[i]) kept.push(detections[i]);
+        }
         return kept;
     }
 
